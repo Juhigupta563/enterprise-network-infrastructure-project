@@ -1,0 +1,95 @@
+# 02. Network Architecture
+
+## 1. Architecture Overview
+
+The project implements a small enterprise network using a **hierarchical logical design** with centralized switching, router-on-a-stick inter-VLAN routing, and an ISP connection.
+
+The network supports three departments—Human Resources (HR), Information Technology (IT), and Finance—along with a dedicated server VLAN. Each department is assigned a separate VLAN and IP subnet to provide logical network segmentation.
+
+## 2. Network Topology
+
+The network consists of the following components:
+
+- **R1-ENTERPRISE:** Main enterprise router. Provides inter-VLAN routing, DHCP services, access control, NAT/PAT, and WAN connectivity.
+- **SW1-CORE:** Central Layer 2 switch. Connects departmental computers and the internal server.
+- **R2-ISP:** ISP-side router. Provides connectivity between the enterprise network and the external network.
+- **SW2-ISP:** Connects the ISP router to the external web server.
+- **EXTERNAL-WEB:** External web server used to test internet-bound connectivity.
+- **Server1:** Internal server providing DNS and web services.
+
+## 3. VLAN and IP Addressing Plan
+
+| VLAN ID | Department / Purpose   | Network         | Default Gateway |
+|---------|------------------------|-----------------|-----------------|
+| 10      | Human Resources        | 192.168.10.0/24 | 192.168.10.1    |
+| 20      | Information Technology | 192.168.20.0/24 | 192.168.20.1    |
+| 30      | Finance                | 192.168.30.0/24 | 192.168.30.1    |
+| 40      | Internal Servers       | 192.168.40.0/24 | 192.168.40.1    |
+| 999     | Unused Switch Ports    | No IP subnet    | Not applicable  |
+
+The departmental computers receive IP addresses dynamically through DHCP. The internal server uses a static IP address.
+
+## 4. Inter-VLAN Routing
+
+Router-on-a-stick is implemented on R1-ENTERPRISE.
+
+The physical connection between R1-ENTERPRISE and SW1-CORE operates as an IEEE 802.1Q trunk. Four router subinterfaces handle traffic for VLANs 10, 20, 30, and 40.
+
+This configuration allows communication between VLANs through the enterprise router, subject to the configured access control policies.
+
+## 5. WAN and External Network Design
+
+The enterprise router connects to the ISP router through a point-to-point WAN link.
+
+| Device / Interface | IP Address      |
+|--------------------|-----------------|
+| R1-ENTERPRISE G0/0 | 203.0.113.1/30  |
+| R2-ISP G0/1        | 203.0.113.2/30  |
+| R2-ISP G0/0        | 198.51.100.1/24 |
+| EXTERNAL-WEB       | 198.51.100.10/24|
+
+Static routing provides connectivity between the enterprise VLANs and the external network. PAT (Port Address Translation) allows internal devices to share the enterprise router's WAN interface address when accessing the external network.
+
+## 6. Security Architecture
+
+The following security mechanisms are implemented:
+
+- VLAN-based network segmentation.
+- Extended ACLs applied inbound on selected departmental router subinterfaces.
+- SSH version 2 for secure router remote management.
+- Local username authentication for SSH access.
+- Switch port security using sticky MAC address learning.
+- Maximum of one secure MAC address on configured access ports.
+- Shutdown violation mode for port security.
+- VLAN 999 assignment and shutdown of unused switch ports.
+
+**ACL policy note:** The current configuration restricts HR access to IT and Finance networks and restricts Finance access to HR and IT networks. IT currently has unrestricted IP access under its configured ACL. These policies should be understood as the implemented configuration, not complete isolation between all departments.
+
+## 7. Network Services
+
+| Service            | Implementation                                     |
+|--------------------|----------------------------------------------------|
+| DHCP               | Dynamic IP allocation for departmental PCs         |
+| DNS                | Internal name resolution for `www.enterprise.local`|
+| Inter-VLAN Routing | Router-on-a-stick                                  |
+| NAT/PAT            | Shared WAN connectivity                            |
+| SSH                | Secure remote router administration                |
+| ACL                | Departmental traffic filtering                     |
+| Port Security      | Access-port MAC address control                    |
+
+## 8. Architecture Validation
+
+The architecture was validated through connectivity and security tests, including:
+
+- Communication between PCs and their default gateways.
+- Internal DNS resolution.
+- Access to the internal server.
+- External web-server connectivity.
+- NAT translation verification.
+- ACL-based traffic restriction tests.
+- SSH remote-access verification.
+- Switch port-security testing.
+
+## 9. Conclusion
+
+The implemented architecture demonstrates enterprise network segmentation, centralized routing and switching, internal network services, WAN connectivity, and practical network security controls. The design was implemented and tested using Cisco Packet Tracer.

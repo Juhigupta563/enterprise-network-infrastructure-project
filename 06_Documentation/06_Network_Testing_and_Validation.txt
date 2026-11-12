@@ -1,0 +1,156 @@
+# 06. Network Testing and Validation
+
+## 1. Introduction
+
+This document presents the testing and validation performed on the enterprise network implemented using Cisco Packet Tracer.
+
+The objective was to verify network connectivity, routing, network services, security policies, and external access.
+
+## 2. VLAN Connectivity Testing
+
+Departmental PCs were tested for connectivity with their respective default gateways.
+
+| Test                           | Expected Result               | Observed Result |
+|--------------------------------|-------------------------------|-----------------|
+| HR-PC1 to HR gateway           | Successful                    | Passed          |
+| IT-PC1 to IT gateway           | Successful                    | Passed          |
+| FINANCE-PC1 to Finance gateway | Successful                    | Passed          |
+| HR-PC1 to internal server      | Successful                    | Passed          |
+| IT-PC1 to HR and Finance PCs   | Allowed by current ACL policy | Passed          |
+
+The departmental gateways responded successfully, confirming connectivity between end devices and their respective VLAN interfaces.
+
+## 3. ACL Security Testing
+
+ACL behaviour was validated by testing communication between departmental PCs.
+
+| Source Device | Destination | Expected Result | Observed Result |
+|---------------|-------------|-----------------|-----------------|
+| HR-PC1        | IT-PC1      | Blocked         | Passed          |
+| HR-PC1        | FINANCE-PC1 | Blocked         | Passed          |
+| FINANCE-PC1   | HR-PC1      | Blocked         | Passed          |
+| FINANCE-PC1   | IT-PC1      | Blocked         | Passed          |
+| IT-PC1        | HR-PC1      | Allowed         | Passed          |
+| IT-PC1        | FINANCE-PC1 | Allowed         | Passed          |
+
+ACL match counters were also checked using `show access-lists` to verify that the configured rules were processing traffic.
+
+## 4. NAT and External Connectivity Testing
+
+External connectivity was tested from departmental devices by accessing the external web server.
+
+| Test                              | Destination   | Observed Result |
+|-----------------------------------|---------------|-----------------|
+| HR-PC1 external connectivity      | 198.51.100.10 | Passed          |
+| IT-PC1 external connectivity      | 198.51.100.10 | Passed          |
+| FINANCE-PC1 external connectivity | 198.51.100.10 | Passed          |
+| Server1 external connectivity     | 198.51.100.10 | Passed          |
+| NAT translation verification      | R1-ENTERPRISE | Passed          |
+
+NAT translations were observed on R1-ENTERPRISE. The latest verification showed 11 dynamic translations and 46 NAT hits.
+
+## 5. DNS and Internal Web Testing
+
+The internal DNS service was tested using the hostname `www.enterprise.local`.
+
+| Test                        | Expected Result | Observed Result |
+|-----------------------------|-----------------|-----------------|
+| DNS hostname resolution     | 192.168.40.21   | Passed          |
+| Internal server ping        | Successful      | Passed          |
+| Internal web service access | Accessible      | Passed          |
+
+The successful DNS lookup confirmed that the hostname resolved to the internal server address.
+
+## 6. SSH Remote Access Testing
+
+SSH remote administration was tested from IT-PC1.
+
+| Test                            | Expected Result | Observed Result |
+|---------------------------------|-----------------|-----------------|
+| SSH version verification        | Version 2       | Passed          |
+| Local username authentication   | Successful      | Passed          |
+| SSH connection to R1-ENTERPRISE | Successful      | Passed          |
+
+The router's SSH configuration and active user session were verified using Cisco IOS commands.
+
+## 7. Switch Port Security Testing
+
+A port-security violation test was performed on an access port.
+
+The test involved temporarily connecting a different PC to a port secured for another device.
+
+| Test                       | Expected Result     | Observed Result |
+|----------------------------|---------------------|-----------------|
+| Sticky MAC learning        | MAC address learned | Passed          |
+| Maximum MAC address limit  | One address         | Passed          |
+| Different device connected | Violation detected  | Passed          |
+| Violation mode             | Secure-shutdown     | Passed          |
+| Original device restored   | Port recovered      | Passed          |
+
+The port was subsequently verified as secure-up.
+
+## 8. Unused Port Security Testing
+
+Unused switch ports Fa0/8–Fa0/24 and Gi0/1 were assigned to VLAN 999 and administratively shut down.
+
+The switch configuration was inspected to verify VLAN assignment and shutdown status.
+
+## 9. WAN Failure and Recovery Testing
+
+A temporary WAN link failure was simulated by disconnecting the WAN cable between R1-ENTERPRISE and R2-ISP.
+
+| Test                 | Expected Result                   | Observed Result|
+|----------------------|-----------------------------------|----------------|
+| WAN disconnected     | External connectivity unavailable | Passed         |
+| WAN reconnected      | Connectivity restored             | Passed         |
+| R1 WAN interface     | Up/up after recovery              | Passed         |
+| External server ping | Successful after recovery         | Passed         |
+
+The first ping after reconnection experienced packet loss during recovery. Subsequent connectivity checks confirmed that the WAN connection was restored.
+
+## 10. Wireshark Protocol Analysis
+
+Wireshark was used to capture and inspect real network traffic generated by the host computer over its Wi-Fi interface.
+
+These captures are supplementary host-network protocol analysis and are separate from the Cisco Packet Tracer simulated network.
+
+| Capture | Protocol / Activity         | Evidence                       |
+|---------|-----------------------------|--------------------------------|
+| 01      | ICMP echo request and reply | Screenshot and PCAPNG          |
+| 02      | TCP traffic                 | Screenshot and PCAPNG          |
+| 03      | DNS queries and responses   | Screenshot and PCAPNG          |
+| 04      | HTTP and HTTPS traffic      | Screenshot and combined PCAPNG |
+
+The captures demonstrated:
+- ICMP echo request and reply packets.
+- TCP communication.
+- DNS query and response packets.
+- HTTP request and response traffic.
+- TLS 1.3 encrypted application data.
+
+## 11. Overall Validation Summary
+
+| Area                        | Validation Status |
+|-----------------------------|-------------------|
+| VLAN configuration          | Passed            |
+| Default gateway connectivity| Passed            |
+| Inter-VLAN routing          | Passed            |
+| ACL security policies       | Passed            |
+| DHCP address allocation     | Passed            |
+| Internal DNS resolution     | Passed            |
+| Internal web access         | Passed            |
+| NAT/PAT operation           | Passed            |
+| External web connectivity   | Passed            |
+| SSH remote management       | Passed            |
+| Switch port security        | Passed            |
+| Unused port isolation       | Passed            |
+| WAN recovery                | Passed            |
+| Wireshark protocol analysis | Completed         |
+
+## 12. Conclusion
+
+The enterprise network successfully demonstrated departmental VLAN segmentation, inter-VLAN routing, DHCP, DNS, ACL-based traffic filtering, NAT/PAT, SSH administration, and switch port security.
+
+Connectivity and security tests confirmed that the configured network functions as intended under the tested conditions. Wireshark provided additional practical experience in inspecting common network protocols.
+
+The project provides a practical demonstration of enterprise network configuration, troubleshooting, security implementation, and validation.

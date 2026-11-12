@@ -1,0 +1,109 @@
+# 04. Routing, NAT and Network Services
+
+## 1. Introduction
+
+This document explains the routing architecture and network services implemented in the enterprise network. These services enable communication between departmental VLANs, internal servers, and the external network.
+
+## 2. Inter-VLAN Routing
+
+Inter-VLAN routing is implemented using the router-on-a-stick approach.
+
+R1-ENTERPRISE connects to SW1-CORE through GigabitEthernet0/2. The switch-router link operates as an IEEE 802.1Q trunk.
+
+The following subinterfaces provide default gateways:
+
+| Subinterface | VLAN | Gateway      |
+|--------------|------|--------------|
+| G0/2.10      | 10   | 192.168.10.1 |
+| G0/2.20      | 20   | 192.168.20.1 |
+| G0/2.30      | 30   | 192.168.30.1 |
+| G0/2.40      | 40   | 192.168.40.1 |
+
+This configuration enables routing between the departmental and server networks, subject to ACL policies.
+
+## 3. DHCP Configuration
+
+R1-ENTERPRISE provides DHCP services to the departmental VLANs.
+
+The DHCP service automatically assigns:
+- IPv4 addresses
+- Subnet masks
+- Default gateways
+- DNS server information
+
+Separate DHCP pools are configured for HR, IT, and Finance. The internal server uses a static IP address.
+
+## 4. DNS Configuration
+
+Server1 provides internal DNS resolution.
+
+| Parameter        | Value                |
+|------------------|----------------------|
+| DNS Server       | 192.168.40.21        |
+| Hostname         | www.enterprise.local |
+| Resolved Address | 192.168.40.21        |
+
+The DNS service allows clients to access the internal web service using a hostname instead of entering its IP address.
+
+## 5. WAN Routing
+
+The enterprise router connects to the ISP router through a point-to-point WAN link.
+
+| Router        | Interface | Address        |
+|---------------|-----------|----------------|
+| R1-ENTERPRISE | G0/0      | 203.0.113.1/30 |
+| R2-ISP        | G0/1      | 203.0.113.2/30 |
+
+R1-ENTERPRISE uses a default static route through the ISP router.
+
+R2-ISP contains return routes for the enterprise VLANs through 203.0.113.1. These routes allow external traffic to return to internal clients.
+
+## 6. NAT and PAT Configuration
+
+Network Address Translation is implemented on R1-ENTERPRISE.
+
+The configuration uses:
+- G0/2.10, G0/2.20, G0/2.30, and G0/2.40 as NAT inside interfaces.
+- G0/0 as the NAT outside interface.
+- An access list identifying the internal enterprise subnets.
+- PAT overload using the WAN interface address.
+
+PAT allows multiple internal devices to access the external network while sharing the public-facing WAN interface address.
+
+## 7. External Network Connectivity
+
+The external network contains an ISP-side LAN and a web server.
+
+| Parameter              | Value           |
+|------------------------|-----------------|
+| ISP LAN Gateway        | 198.51.100.1    |
+| External Web Server    | 198.51.100.10   |
+| External Server Subnet | 198.51.100.0/24 |
+
+External connectivity was tested from HR, IT, and Finance computers by accessing the external web server.
+
+## 8. Network Management
+
+SSH version 2 is configured on R1-ENTERPRISE for secure remote administration.
+
+The router uses local username authentication. Remote management through the configured VTY lines accepts SSH connections rather than Telnet.
+
+## 9. Verification
+
+The following commands were used during network validation:
+
+| Command                   | Purpose                                  |
+|---------------------------|------------------------------------------|
+| `show ip interface brief` | Verify interface status and IP addresses |
+| `show ip route`           | Inspect routing table                    |
+| `show ip dhcp binding`    | Verify DHCP leases                       |
+| `show ip nat translations`| Inspect NAT translations                 |
+| `show ip nat statistics`  | Check NAT activity                       |
+| `show access-lists`       | Inspect ACL rules and match counters     |
+| `show ip ssh`             | Verify SSH configuration                 |
+| `ping`                    | Test IP connectivity                     |
+| `nslookup`                | Test DNS resolution                      |
+
+## 10. Conclusion
+
+Routing, DHCP, DNS, NAT/PAT, and SSH provide the core connectivity and management services for the enterprise network. Their configuration was verified through router commands and end-to-end connectivity tests.

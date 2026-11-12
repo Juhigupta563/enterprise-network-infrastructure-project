@@ -1,0 +1,64 @@
+# Enterprise Network Infrastructure Design, Configuration & Monitoring
+
+## 1. Project Overview
+
+**Project Name:** Enterprise Network Infrastructure Design, Configuration & Monitoring
+
+**Platform:** Cisco Packet Tracer
+
+**Domain:** Computer Networking / Network Engineering
+
+## 2. Introduction
+
+This project focuses on designing, configuring and testing a secure enterprise network infrastructure using Cisco Packet Tracer.
+
+The network connects multiple departments, including HR, IT and Finance, through a centralized switching and routing architecture.
+
+The implementation uses VLAN segmentation, inter-VLAN routing, DHCP, DNS, Access Control Lists (ACLs), NAT/PAT and switch port security to provide controlled communication and external network connectivity.
+
+## 3. Project Objectives
+
+- Design a multi-department enterprise network.
+- Implement VLAN-based network segmentation.
+- Configure inter-VLAN routing using Router-on-a-Stick.
+- Implement DHCP for automatic IP address allocation.
+- Configure DNS services for domain-name resolution.
+- Implement ACLs to restrict unauthorized departmental communication.
+- Configure NAT/PAT for external network access.
+- Implement switch port security.
+- Secure unused switch ports.
+- Perform network connectivity and troubleshooting tests.
+- Analyse network traffic using Wireshark.
+
+## 4. Technologies and Tools
+
+| Technology          | Application                     |
+|---------------------|---------------------------------|
+| Cisco Packet Tracer | Network simulation              |
+| Cisco IOS           | Router and switch configuration |
+| VLAN                | Departmental segmentation       |
+| IEEE 802.1Q         | VLAN trunking                   |
+| DHCP                | Dynamic IP allocation           |
+| DNS                 | Domain-name resolution          |
+| ACL                 | Network access control          |
+| NAT/PAT             | Address translation             |
+| SSH                 | Secure remote administration    |
+| Port Security       | MAC address-based access control|
+| Wireshark           | Packet analysis                 |
+
+## 5. Network Departments
+
+The enterprise network includes:
+
+- Human Resources (HR)
+- Information Technology (IT)
+- Finance
+- Server Network
+
+An ISP-side network and external web server are also configured to simulate external connectivity.
+
+## 6. Project Outcome
+
+Successfully implemented and tested a multi-department enterprise network with centralized routing, departmental access restrictions, internal DNS services, external web connectivity and network security controls.
+
+The project demonstrates practical knowledge of network configuration, troubleshooting, traffic analysis and enterprise network infrastructure.

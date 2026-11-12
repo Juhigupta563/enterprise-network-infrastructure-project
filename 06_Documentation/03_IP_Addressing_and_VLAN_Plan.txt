@@ -1,0 +1,105 @@
+# 03. IP Addressing and VLAN Plan
+
+## 1. Purpose
+
+This document describes the IP addressing scheme, VLAN allocation, default gateways, and network interface assignments used in the enterprise network project.
+
+The network uses separate IPv4 subnets for HR, IT, Finance, and internal servers. This segmentation helps organize network resources and apply department-specific security policies.
+
+## 2. VLAN Allocation
+
+| VLAN ID | VLAN Name    | Purpose                          |
+|---------|--------------|------------------------------- --|
+| 10      | HR           | Human Resources computers        |
+| 20      | IT           | Information Technology computers |
+| 30      | FINANCE      | Finance department computers     |
+| 40      | SERVERS      | Internal server network          |
+| 999     | UNUSED_PORTS | Isolated unused switch ports     |
+
+## 3. IPv4 Addressing Scheme
+
+| VLAN | Network Address | Subnet Mask   | Default Gateway |
+|------|-----------------|---------------|-----------------|
+| 10   | 192.168.10.0    | 255.255.255.0 | 192.168.10.1    |
+| 20   | 192.168.20.0    | 255.255.255.0 | 192.168.20.1    |
+| 30   | 192.168.30.0    | 255.255.255.0 | 192.168.30.1    |
+| 40   | 192.168.40.0    | 255.255.255.0 | 192.168.40.1    |
+
+Each departmental subnet uses a /24 prefix, providing 254 usable host addresses.
+
+## 4. End-Device Allocation
+
+| Device      | VLAN | IP Address    |
+|-------------|------|---------------|
+| HR-PC1      | 10   | DHCP assigned |
+| HR-PC2      | 10   | DHCP assigned |
+| IT-PC1      | 20   | DHCP assigned |
+| IT-PC2      | 20   | DHCP assigned |
+| FINANCE-PC1 | 30   | DHCP assigned |
+| FINANCE-PC2 | 30   | DHCP assigned |
+| Server1     | 40   | 192.168.40.21 |
+
+The six departmental PCs obtain their IPv4 addresses automatically from the DHCP service configured on R1-ENTERPRISE.
+
+Server1 uses a static IPv4 address so that internal services remain accessible at a consistent address.
+
+
+## 5. Router Subinterface Mapping
+
+Router-on-a-stick is configured on R1-ENTERPRISE using the following subinterfaces:
+
+| Router Interface | VLAN | IP Address      |
+|------------------|------|-----------------|
+| G0/2.10          | 10   | 192.168.10.1/24 |
+| G0/2.20          | 20   | 192.168.20.1/24 |
+| G0/2.30          | 30   | 192.168.30.1/24 |
+| G0/2.40          | 40   | 192.168.40.1/24 |
+
+The physical G0/2 interface connects to SW1-CORE through an 802.1Q trunk.
+
+## 6. Switch Port Assignment
+
+| Switch Port | Connected Device | VLAN  |
+|-------------|------------------|-------|
+| Fa0/1       | HR-PC1           | 10    |
+| Fa0/2       | HR-PC2           | 10    |
+| Fa0/3       | IT-PC1           | 20    |
+| Fa0/4       | IT-PC2           | 20    |
+| Fa0/5       | FINANCE-PC1      | 30    |
+| Fa0/6       | FINANCE-PC2      | 30    |
+| Fa0/7       | Server1          | 40    |
+| Gi0/2       | R1-ENTERPRISE    | Trunk |
+
+Unused access ports Fa0/8–Fa0/24 and Gi0/1 are assigned to VLAN 999 and administratively shut down.
+
+## 7. WAN and External IP Addressing
+
+| Device / Interface | IPv4 Address  | Subnet Mask     |
+|--------------------|---------------|-----------------|
+| R1-ENTERPRISE G0/0 | 203.0.113.1   | 255.255.255.252 |
+| R2-ISP G0/1        | 203.0.113.2   | 255.255.255.252 |
+| R2-ISP G0/0        | 198.51.100.1  | 255.255.255.0   |
+| EXTERNAL-WEB       | 198.51.100.10 | 255.255.255.0   |
+
+The external web server uses 198.51.100.1 as its default gateway.
+
+## 8. Routing and NAT
+
+- R1-ENTERPRISE uses a default static route through 203.0.113.2.
+- R2-ISP has return routes for the four enterprise subnets through 203.0.113.1.
+- PAT overload is configured on R1-ENTERPRISE using its G0/0 WAN interface.
+- The internal VLAN interfaces are configured as NAT inside interfaces, while G0/0 is configured as NAT outside.
+
+## 9. DNS Configuration
+
+The internal DNS service is hosted on Server1 at:
+
+- Server IP: 192.168.40.21
+- DNS hostname: `www.enterprise.local`
+- DNS resolution target: 192.168.40.21
+
+The hostname is used to test internal DNS resolution and access to the internal web service.
+
+## 10. Conclusion
+
+The addressing plan provides a structured IPv4 design for the enterprise network. VLAN separation, dedicated subnets, router subinterfaces, static WAN routing, DHCP, DNS, and NAT/PAT work together to support departmental connectivity and external network access.

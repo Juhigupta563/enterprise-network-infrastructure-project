@@ -1,0 +1,132 @@
+# 05. ACL and Network Security Implementation
+
+## 1. Introduction
+
+This document describes the security mechanisms implemented in the enterprise network using Cisco IOS features.
+
+The objective is to control inter-departmental traffic, secure router administration, protect switch access ports, and reduce risks from unused switch interfaces.
+
+## 2. VLAN-Based Network Segmentation
+
+The network is divided into four functional VLANs:
+
+| VLAN | Department |
+|------|------------|
+| 10   | HR         |
+| 20   | IT         |
+| 30   | Finance    |
+| 40   | Servers    |
+
+Each VLAN uses a separate IPv4 subnet. Inter-VLAN traffic passes through R1-ENTERPRISE, where configured ACL policies can filter traffic.
+
+## 3. Access Control Lists (ACLs)
+
+Extended ACLs are configured on R1-ENTERPRISE and applied inbound to selected departmental subinterfaces.
+
+| ACL Name         | Applied Interface | Direction |
+|------------------|-------------------|-----------|
+| HR-SECURITY      | G0/2.10           | Inbound   |
+| IT-SECURITY      | G0/2.20           | Inbound   |
+| FINANCE-SECURITY | G0/2.30           | Inbound   |
+
+### 3.1 HR Security Policy
+
+The HR ACL blocks access from the HR subnet to the IT and Finance subnets.
+
+It also includes permissions for DNS and HTTP access to the internal server, followed by a general permit rule.
+
+### 3.2 IT Security Policy
+
+The IT ACL currently includes a general IP permit rule. Therefore, IT devices retain unrestricted IP access under the implemented policy.
+
+### 3.3 Finance Security Policy
+
+The Finance ACL blocks access from the Finance subnet to the HR and IT subnets.
+
+It permits the required DNS and HTTP access to the internal server and includes a general permit rule for other traffic.
+
+### 3.4 Observed ACL Behaviour
+
+Testing confirmed the following:
+
+| Source  | Destination         | Observed Result |
+|---------|---------------------|-----------------|
+| HR      | IT                  | Blocked         |
+| HR      | Finance             | Blocked         |
+| Finance | HR                  | Blocked         |
+| Finance | IT                  | Blocked         |
+| IT      | HR                  | Allowed         |
+| IT      | Finance             | Allowed         |
+| Finance | Internal DNS server | Allowed         |
+| Finance | External web server | Allowed         |
+
+These results describe the tested traffic. The ACL policies are not intended to represent complete isolation between all departments.
+
+## 4. SSH Remote Management
+
+SSH version 2 is configured on R1-ENTERPRISE.
+
+Security settings include:
+
+- Local username: `netadmin`
+- Privilege level: 15
+- RSA key size: 1024 bits
+- SSH version: 2
+- VTY authentication: Local username database
+- Remote access transport: SSH only
+
+SSH connectivity was successfully tested from IT-PC1.
+
+## 5. Switch Port Security
+
+Port security is configured on the seven active access ports of SW1-CORE.
+
+| Setting                      | Configuration |
+|------------------------------|---------------|
+| Maximum secure MAC addresses | 1             |
+| MAC learning                 | Sticky        |
+| Violation mode               | Shutdown      |
+| Configured ports             | Fa0/1–Fa0/7   |
+
+Sticky MAC learning allows the switch to dynamically learn and retain the permitted device MAC address.
+
+A violation test was performed by temporarily connecting a different PC to an already secured port. The switch placed the affected port into a secure-shutdown state.
+
+The original device was restored, and the port was recovered and verified as secure-up.
+
+## 6. Unused Port Security
+
+Unused switch interfaces Fa0/8–Fa0/24 and Gi0/1 are assigned to VLAN 999 (`UNUSED_PORTS`) and administratively shut down.
+
+This reduces the risk of unauthorized devices connecting through unused interfaces.
+
+## 7. Security Verification Commands
+
+| Command                              | Purpose                              |
+|--------------------------------------|--------------------------------------|
+| `show access-lists`                  | Inspect ACL rules and match counters |
+| `show ip interface brief`            | Verify router interface status       |
+| `show port-security`                 | Check port-security status           |
+| `show port-security interface fa0/1` | Inspect an individual port           |
+| `show interfaces trunk`              | Verify trunk configuration           |
+| `show vlan brief`                    | Verify VLAN membership               |
+| `show ip ssh`                        | Verify SSH version                   |
+| `show users`                         | Inspect active router sessions       |
+
+## 8. Security Assessment and Limitations
+
+The implemented configuration demonstrates practical network security controls, including traffic filtering, secure remote administration, MAC-based port security, and unused-port shutdown.
+
+The current IT ACL permits all IP traffic, so IT is not isolated from HR or Finance. The ACL rules also do not establish a complete least-privilege policy for every protocol and destination.
+
+For a production deployment, additional measures could include:
+
+- Restricting IT access according to specific administrative requirements.
+- Applying explicit least-privilege ACL rules.
+- Using stronger RSA keys and centralized authentication.
+- Implementing network monitoring and logging.
+- Reviewing ACL rules periodically.
+
+## 9. Conclusion
+
+The project demonstrates multiple Cisco IOS security mechanisms and validates their behaviour through practical testing. The documented policies reflect the actual implemented configuration and observed test results.
